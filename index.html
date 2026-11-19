@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Frazer Kirkman</title>
+<meta name="description" content="Frazer Kirkman — builder of games, visualizations, VR experiments and tools for being more awesome.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌀</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0b1a;
+    --bg-2: #14142b;
+    --card: rgba(255,255,255,0.05);
+    --card-border: rgba(255,255,255,0.10);
+    --text: #f1f0ff;
+    --muted: #a9a7c9;
+    --accent: #ff4fd8;
+    --accent-2: #3ee6ff;
+    --accent-3: #ffd23f;
+    --radius: 18px;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #fff8f0; --bg-2: #ffeedd;
+      --card: rgba(255,255,255,0.75); --card-border: rgba(40,20,80,0.12);
+      --text: #1d1640; --muted: #5d5680;
+      --accent: #e0249f; --accent-2: #0088b8; --accent-3: #d98e00;
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #fff8f0; --bg-2: #ffeedd;
+    --card: rgba(255,255,255,0.75); --card-border: rgba(40,20,80,0.12);
+    --text: #1d1640; --muted: #5d5680;
+    --accent: #e0249f; --accent-2: #0088b8; --accent-3: #d98e00;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    color: var(--text);
+    background: radial-gradient(1200px 800px at 10% -10%, var(--bg-2), transparent 60%), var(--bg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  #sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  main { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 16px 80px; }
+
+  /* ---------- Hero ---------- */
+  .hero { display: grid; grid-template-columns: auto 1fr; gap: 36px; align-items: center; padding: 90px 0 50px; }
+  .avatar-wrap { position: relative; width: 168px; height: 168px; cursor: pointer; }
+  .avatar-wrap::before {
+    content: ""; position: absolute; inset: -6px; border-radius: 50%;
+    background: conic-gradient(var(--accent), var(--accent-2), var(--accent-3), var(--accent));
+    animation: spin 6s linear infinite;
+  }
+  .avatar { position: relative; width: 100%; height: 100%; border-radius: 50%; border: 5px solid var(--bg); object-fit: cover; background: var(--bg-2); transition: transform .3s; }
+  .avatar-wrap:hover .avatar { transform: rotate(-8deg) scale(1.04); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hi { font-family: "JetBrains Mono", monospace; color: var(--accent-2); font-size: 15px; margin: 0 0 8px; }
+  h1 { font-size: clamp(44px, 8vw, 84px); line-height: .95; margin: 0 0 14px; letter-spacing: -2px; }
+  h1 .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent-3), var(--accent-2), var(--accent));
+    background-size: 300% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: shimmer 8s ease infinite;
+  }
+  @keyframes shimmer { 50% { background-position: 100% 0; } }
+  .wave { display: inline-block; animation: wave 2.4s ease-in-out infinite; transform-origin: 70% 70%; }
+  @keyframes wave { 0%,60%,100% { transform: rotate(0) } 10%,30% { transform: rotate(14deg) } 20% { transform: rotate(-8deg) } 40% { transform: rotate(-4deg) } 50% { transform: rotate(10deg) } }
+
+  .tagline { font-size: clamp(18px, 2.6vw, 24px); color: var(--muted); margin: 0 0 22px; min-height: 1.5em; }
+  .tagline .typed { color: var(--text); font-weight: 500; }
+  .caret { display: inline-block; width: 2px; height: 1em; background: var(--accent); vertical-align: -2px; margin-left: 2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border-radius: 999px;
+    background: var(--card); border: 1px solid var(--card-border); color: var(--text); text-decoration: none; font-size: 15px;
+    transition: transform .2s, border-color .2s, background .2s;
+  }
+  a.chip:hover { transform: translateY(-3px) rotate(-1deg); border-color: var(--accent); }
+  .chip svg { width: 16px; height: 16px; fill: currentColor; }
+
+  /* ---------- Things I love ---------- */
+  .section-title { font-size: clamp(28px, 4vw, 40px); margin: 60px 0 22px; letter-spacing: -1px; }
+  .section-title small { display: block; font-family: "JetBrains Mono", monospace; font-size: 13px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-weight: 400; }
+  .loves { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .love {
+    padding: 20px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--card-border);
+    transition: transform .25s cubic-bezier(.3,1.6,.5,1);
+  }
+  .love:hover { transform: translateY(-6px) rotate(1deg); }
+  .love .emoji { font-size: 34px; display: block; margin-bottom: 10px; }
+  .love h3 { margin: 0 0 6px; font-size: 18px; }
+  .love p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
+
+  /* ---------- Stats ---------- */
+  .stats { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
+  .stat { flex: 1 1 140px; padding: 16px 18px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--card-border); }
+  .stat b { display: block; font-size: 30px; font-variant-numeric: tabular-nums; }
+  .stat span { color: var(--muted); font-size: 13px; }
+
+  /* ---------- Controls ---------- */
+  .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 20px; }
+  .seg { display: inline-flex; padding: 4px; border-radius: 999px; background: var(--card); border: 1px solid var(--card-border); }
+  .seg button {
+    border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 14.5px; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+  }
+  .seg button[aria-pressed="true"] { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #fff; font-weight: 500; }
+  .search {
+    flex: 1 1 200px; min-width: 0; padding: 11px 16px; border-radius: 999px; font: inherit; font-size: 15px;
+    background: var(--card); border: 1px solid var(--card-border); color: var(--text); outline: none;
+  }
+  .search:focus { border-color: var(--accent-2); }
+  .toggle { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14.5px; cursor: pointer; user-select: none; }
+  .toggle input { accent-color: var(--accent); width: 16px; height: 16px; }
+  .langs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+  .lang-btn {
+    display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px; padding: 5px 11px; border-radius: 999px; cursor: pointer;
+    background: transparent; color: var(--muted); border: 1px solid var(--card-border);
+  }
+  .lang-btn[aria-pressed="true"] { color: var(--text); border-color: var(--accent); background: var(--card); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; flex: none; }
+
+  /* ---------- Repo grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+  .repo {
+    position: relative; display: flex; flex-direction: column; padding: 20px; border-radius: var(--radius);
+    background: var(--card); border: 1px solid var(--card-border); backdrop-filter: blur(6px);
+    transition: transform .25s cubic-bezier(.3,1.5,.5,1), border-color .25s, box-shadow .25s;
+    animation: pop .45s cubic-bezier(.3,1.5,.5,1) both;
+  }
+  .repo:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 14px 40px -18px var(--accent); }
+  @keyframes pop { from { opacity: 0; transform: translateY(16px) scale(.97); } }
+  .repo-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .repo h3 { margin: 0; font-size: 18px; word-break: break-word; }
+  .repo h3 a { color: var(--text); text-decoration: none; }
+  .repo h3 a::after { content: ""; position: absolute; inset: 0; border-radius: var(--radius); }
+  .badge { flex: none; font-family: "JetBrains Mono", monospace; font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--card-border); color: var(--muted); }
+  .badge.hot { color: var(--accent-3); border-color: var(--accent-3); }
+  .repo p { margin: 0 0 16px; color: var(--muted); font-size: 14.5px; line-height: 1.5; flex: 1; }
+  .repo p.empty { font-style: italic; opacity: .7; }
+  .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; font-size: 13px; color: var(--muted); }
+  .meta span { display: inline-flex; align-items: center; gap: 5px; }
+  .links { display: flex; gap: 8px; margin-top: 14px; }
+  .links a {
+    position: relative; z-index: 2; font-size: 13px; font-weight: 500; text-decoration: none; padding: 7px 12px; border-radius: 10px;
+    border: 1px solid var(--card-border); color: var(--text); transition: background .2s, border-color .2s;
+  }
+  .links a:hover { border-color: var(--accent-2); }
+  .links a.live { background: linear-gradient(90deg, var(--accent), var(--accent-2)); color: #fff; border-color: transparent; }
+
+  .status { text-align: center; color: var(--muted); padding: 40px 0; grid-column: 1 / -1; }
+  .spinner { width: 34px; height: 34px; margin: 0 auto 12px; border-radius: 50%; border: 3px solid var(--card-border); border-top-color: var(--accent); animation: spin .8s linear infinite; }
+
+  footer { position: relative; z-index: 1; text-align: center; color: var(--muted); font-size: 14px; padding: 30px 16px 50px; }
+  footer button { font: inherit; color: var(--accent-2); background: none; border: 0; cursor: pointer; text-decoration: underline; }
+
+  .theme-toggle {
+    position: fixed; top: 16px; right: 16px; z-index: 5; width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer;
+    background: var(--card); border: 1px solid var(--card-border); color: var(--text); backdrop-filter: blur(6px);
+  }
+
+  .confetti { position: fixed; top: 0; left: 0; z-index: 10; pointer-events: none; font-size: 22px; will-change: transform; }
+
+  @media (max-width: 640px) {
+    .hero { grid-template-columns: 1fr; text-align: center; padding-top: 70px; gap: 22px; }
+    .avatar-wrap { margin: 0 auto; width: 130px; height: 130px; }
+    .chips { justify-content: center; }
+    .grid { grid-template-columns: 1fr; }
+    .seg { width: 100%; }
+    .seg button { flex: 1; padding: 8px 6px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle light/dark theme">🌓</button>
+
+<main>
+  <section class="hero">
+    <div class="avatar-wrap" id="avatarWrap" title="Click me!">
+      <img class="avatar" src="https://avatars.githubusercontent.com/u/374464?v=4" alt="Frazer Kirkman">
+    </div>
+    <div>
+      <p class="hi">&gt; hello, world <span class="wave">👋</span></p>
+      <h1>I'm <span class="grad">Frazer</span><br>Kirkman.</h1>
+      <p class="tagline">I build <span class="typed" id="typed"></span><span class="caret"></span></p>
+      <div class="chips">
+        <a class="chip" href="https://github.com/Frazer" target="_blank" rel="noopener">
+          <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          GitHub
+        </a>
+        <a class="chip" href="https://frazerk.net" target="_blank" rel="noopener">🌐 frazerk.net</a>
+        <span class="chip">📍 San Francisco</span>
+        <span class="chip">✨ United Visions</span>
+      </div>
+    </div>
+  </section>
+
+  <h2 class="section-title"><small>// things I love making</small>Stuff that sparks joy</h2>
+  <div class="loves">
+    <div class="love"><span class="emoji">🎮</span><h3>Games</h3><p>From remixing 2048 into 8192 to snake, car chases and 360° VR ball-catching.</p></div>
+    <div class="love"><span class="emoji">🌈</span><h3>Visual play</h3><p>D3 phyllotaxis flowers, radial gradients, colour blenders and Magic Eye experiments.</p></div>
+    <div class="love"><span class="emoji">🧠</span><h3>Positive minds</h3><p>Coaching tools, self-tracking, mental rehearsal films and positivity clubs.</p></div>
+    <div class="love"><span class="emoji">🛠️</span><h3>Handy tools</h3><p>Mac clipboard managers, CSS helpers, sorting algorithms and tax estimators.</p></div>
+  </div>
+
+  <h2 class="section-title" id="projects"><small>// fetched live from GitHub</small>All my repos</h2>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Sort repositories">
+      <button data-sort="hot" aria-pressed="true">🔥 Hot</button>
+      <button data-sort="recent" aria-pressed="false">🕒 Recent</button>
+      <button data-sort="popular" aria-pressed="false">⭐ Popular</button>
+    </div>
+    <input class="search" id="search" type="search" placeholder="Search repos…" aria-label="Search repositories">
+    <label class="toggle"><input type="checkbox" id="showForks"> Show forks</label>
+  </div>
+  <div class="langs" id="langs"></div>
+
+  <div class="grid" id="grid">
+    <div class="status"><div class="spinner"></div>Summoning repositories…</div>
+  </div>
+</main>
+
+<footer>
+  Made with ☕ and curiosity · <button id="partyBtn">Throw a party 🎉</button>
+</footer>
+
+<script>
+(() => {
+  const USER = "Frazer";
+  const PAGES_BASE = "https://frazer.github.io/";
+  const CACHE_KEY = "repos-cache-v1";
+  const CACHE_MS = 30 * 60 * 1000;
+
+  const LANG_COLORS = {
+    JavaScript: "#f1e05a", TypeScript: "#3178c6", HTML: "#e34c26", CSS: "#663399", Swift: "#F05138",
+    Python: "#3572A5", Ruby: "#701516", Shell: "#89e051", C: "#555555", CoffeeScript: "#244776",
+    Vue: "#41b883", Go: "#00ADD8", Rust: "#dea584", Java: "#b07219", "C++": "#f34b7d", Kotlin: "#A97BFF"
+  };
+  const langColor = l => LANG_COLORS[l] || "#9a9ab0";
+
+  /* ---------- Theme toggle ---------- */
+  const root = document.documentElement;
+  try { const t = localStorage.getItem("theme"); if (t) root.dataset.theme = t; } catch {}
+  document.getElementById("themeToggle").addEventListener("click", () => {
+    const dark = root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.dataset.theme = dark ? "light" : "dark";
+    try { localStorage.setItem("theme", root.dataset.theme); } catch {}
+  });
+
+  /* ---------- Typewriter ---------- */
+  const phrases = ["games that make people grin.", "VR worlds to play in.", "visualizations that bloom.", "tools for being more awesome.", "little Mac apps.", "things for intentional communities."];
+  const typedEl = document.getElementById("typed");
+  let pi = 0, ci = 0, deleting = false;
+  (function type() {
+    const p = phrases[pi];
+    typedEl.textContent = p.slice(0, ci);
+    if (!deleting && ci < p.length) { ci++; setTimeout(type, 55); }
+    else if (!deleting) { deleting = true; setTimeout(type, 1600); }
+    else if (ci > 0) { ci--; setTimeout(type, 28); }
+    else { deleting = false; pi = (pi + 1) % phrases.length; setTimeout(type, 300); }
+  })();
+
+  /* ---------- Starfield / floating particles ---------- */
+  const cv = document.getElementById("sky"), ctx = cv.getContext("2d");
+  let W, H, stars = [], mouse = { x: -999, y: -999 };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function resize() {
+    W = cv.width = innerWidth * devicePixelRatio; H = cv.height = innerHeight * devicePixelRatio;
+    cv.style.width = innerWidth + "px"; cv.style.height = innerHeight + "px";
+    const n = Math.min(140, Math.floor(innerWidth * innerHeight / 9000));
+    stars = Array.from({ length: n }, () => ({
+      x: Math.random() * W, y: Math.random() * H, r: (Math.random() * 1.8 + .4) * devicePixelRatio,
+      vx: (Math.random() - .5) * .25, vy: (Math.random() - .5) * .25, h: [320, 190, 45][Math.floor(Math.random() * 3)]
+    }));
+  }
+  addEventListener("resize", resize); resize();
+  addEventListener("pointermove", e => { mouse.x = e.clientX * devicePixelRatio; mouse.y = e.clientY * devicePixelRatio; });
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      const dx = s.x - mouse.x, dy = s.y - mouse.y, d2 = dx * dx + dy * dy, R = 140 * devicePixelRatio;
+      if (d2 < R * R) { const f = (1 - Math.sqrt(d2) / R) * .9; s.x += dx / Math.sqrt(d2 + 1) * f; s.y += dy / Math.sqrt(d2 + 1) * f; }
+      s.x = (s.x + s.vx + W) % W; s.y = (s.y + s.vy + H) % H;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${s.h}, 95%, 65%, .55)`; ctx.fill();
+    }
+    if (!reduce) requestAnimationFrame(draw);
+  }
+  draw();
+
+  /* ---------- Confetti ---------- */
+  const bits = ["🎉", "✨", "🌀", "💖", "⭐", "🚀", "🌈", "🎮"];
+  function confetti(x, y, n = 30) {
+    if (reduce) return;
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement("span");
+      el.className = "confetti"; el.textContent = bits[i % bits.length];
+      document.body.appendChild(el);
+      let px = x, py = y, vx = (Math.random() - .5) * 14, vy = -Math.random() * 14 - 4, rot = 0, vr = (Math.random() - .5) * 20, life = 0;
+      (function step() {
+        vy += .45; px += vx; py += vy; rot += vr; life++;
+        el.style.transform = `translate(${px}px, ${py}px) rotate(${rot}deg)`;
+        el.style.opacity = Math.max(0, 1 - life / 90);
+        if (life < 90) requestAnimationFrame(step); else el.remove();
+      })();
+    }
+  }
+  document.getElementById("avatarWrap").addEventListener("click", e => confetti(e.clientX, e.clientY));
+  document.getElementById("partyBtn").addEventListener("click", () => {
+    for (let k = 0; k < 5; k++) setTimeout(() => confetti(Math.random() * innerWidth, innerHeight * .6, 24), k * 180);
+  });
+
+  /* ---------- Repos ---------- */
+  const grid = document.getElementById("grid");
+  const state = { sort: "hot", q: "", forks: false, lang: null, repos: [] };
+
+  const DAY = 864e5;
+  const ago = iso => {
+    const d = (Date.now() - new Date(iso)) / DAY;
+    if (d < 1) return "today";
+    if (d < 2) return "yesterday";
+    if (d < 30) return `${Math.floor(d)} days ago`;
+    if (d < 365) return `${Math.floor(d / 30)} mo ago`;
+    const y = Math.floor(d / 365); return `${y} yr${y > 1 ? "s" : ""} ago`;
+  };
+  const popularity = r => r.stargazers_count * 3 + r.forks_count * 2 + r.watchers_count * 0 + (r.has_pages ? 1 : 0);
+  // Blend popularity with recency: recent activity decays over ~6 months.
+  const hotness = r => {
+    const ageDays = (Date.now() - new Date(r.pushed_at)) / DAY;
+    return (popularity(r) + 1) * 0.4 + 10 * Math.exp(-ageDays / 180);
+  };
+  const SORTS = {
+    hot: (a, b) => hotness(b) - hotness(a),
+    recent: (a, b) => new Date(b.pushed_at) - new Date(a.pushed_at),
+    popular: (a, b) => popularity(b) - popularity(a) || new Date(b.pushed_at) - new Date(a.pushed_at)
+  };
+
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const liveUrl = r => {
+    if (r.homepage && /^https?:\/\//.test(r.homepage)) return r.homepage;
+    if (r.has_pages) return r.name.toLowerCase() === `${USER.toLowerCase()}.github.io` ? PAGES_BASE : PAGES_BASE + r.name + "/";
+    return null;
+  };
+
+  async function fetchRepos() {
+    try {
+      const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
+      if (c && Date.now() - c.t < CACHE_MS) return c.repos;
+    } catch {}
+    let all = [], page = 1;
+    while (true) {
+      const res = await fetch(`https://api.github.com/users/${USER}/repos?per_page=100&page=${page}&sort=pushed`, { headers: { Accept: "application/vnd.github+json" } });
+      if (!res.ok) throw new Error(res.status === 403 ? "GitHub's rate limit kicked in — try again in a bit." : `GitHub said ${res.status}`);
+      const batch = await res.json();
+      all = all.concat(batch);
+      if (batch.length < 100) break;
+      page++;
+    }
+    const slim = all.map(({ name, html_url, description, homepage, has_pages, fork, stargazers_count, forks_count, watchers_count, language, pushed_at, topics, archived }) =>
+      ({ name, html_url, description, homepage, has_pages, fork, stargazers_count, forks_count, watchers_count, language, pushed_at, topics, archived }));
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), repos: slim })); } catch {}
+    return slim;
+  }
+
+  function visible() {
+    const q = state.q.toLowerCase();
+    return state.repos
+      .filter(r => state.forks || !r.fork)
+      .filter(r => !state.lang || r.language === state.lang)
+      .filter(r => !q || [r.name, r.description, r.language, ...(r.topics || [])].join(" ").toLowerCase().includes(q))
+      .sort(SORTS[state.sort]);
+  }
+
+  function renderStats() {
+    const own = state.repos.filter(r => !r.fork);
+    const stars = state.repos.reduce((s, r) => s + r.stargazers_count, 0);
+    const live = state.repos.filter(r => liveUrl(r)).length;
+    const langs = new Set(own.map(r => r.language).filter(Boolean)).size;
+    const data = [[own.length, "original repos"], [live, "live demos"], [langs, "languages"], [stars, "stars earned"]];
+    document.getElementById("stats").innerHTML = data.map(([n, l]) => `<div class="stat"><b data-n="${n}">0</b><span>${l}</span></div>`).join("");
+    document.querySelectorAll(".stat b").forEach(b => {
+      const n = +b.dataset.n, t0 = performance.now();
+      (function tick(t) { const p = Math.min(1, (t - t0) / 900); b.textContent = Math.round(n * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(tick); })(t0);
+    });
+  }
+
+  function renderLangs() {
+    const pool = state.repos.filter(r => state.forks || !r.fork);
+    const counts = {};
+    pool.forEach(r => r.language && (counts[r.language] = (counts[r.language] || 0) + 1));
+    if (state.lang && !counts[state.lang]) state.lang = null;
+    const langs = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    document.getElementById("langs").innerHTML =
+      `<button class="lang-btn" data-lang="" aria-pressed="${!state.lang}">All</button>` +
+      langs.map(([l, n]) => `<button class="lang-btn" data-lang="${esc(l)}" aria-pressed="${state.lang === l}"><span class="dot" style="background:${langColor(l)}"></span>${esc(l)} · ${n}</button>`).join("");
+  }
+
+  function render() {
+    const list = visible();
+    if (!list.length) { grid.innerHTML = `<div class="status">🦗 No repos match that. Try something else?</div>`; return; }
+    const topHot = new Set([...state.repos].filter(r => !r.fork).sort(SORTS.hot).slice(0, 3).map(r => r.name));
+    grid.innerHTML = list.map((r, i) => {
+      const live = liveUrl(r);
+      const badge = r.fork ? `<span class="badge">fork</span>` : r.archived ? `<span class="badge">archived</span>` : topHot.has(r.name) ? `<span class="badge hot">🔥 hot</span>` : "";
+      return `<article class="repo" style="animation-delay:${Math.min(i, 20) * 30}ms">
+        <div class="repo-head"><h3><a href="${esc(r.html_url)}" target="_blank" rel="noopener">${esc(r.name)}</a></h3>${badge}</div>
+        ${r.description ? `<p>${esc(r.description)}</p>` : `<p class="empty">A mystery project. Click to find out 🕵️</p>`}
+        <div class="meta">
+          ${r.language ? `<span><i class="dot" style="background:${langColor(r.language)}"></i>${esc(r.language)}</span>` : ""}
+          ${r.stargazers_count ? `<span>⭐ ${r.stargazers_count}</span>` : ""}
+          ${r.forks_count ? `<span>🍴 ${r.forks_count}</span>` : ""}
+          <span>🕒 ${ago(r.pushed_at)}</span>
+        </div>
+        <div class="links">
+          ${live ? `<a class="live" href="${esc(live)}" target="_blank" rel="noopener">▶ Live site</a>` : ""}
+          <a href="${esc(r.html_url)}" target="_blank" rel="noopener">Code</a>
+        </div>
+      </article>`;
+    }).join("");
+  }
+
+  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+    document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    state.sort = b.dataset.sort; render();
+  }));
+  document.getElementById("search").addEventListener("input", e => { state.q = e.target.value; render(); });
+  document.getElementById("showForks").addEventListener("change", e => { state.forks = e.target.checked; renderLangs(); render(); });
+  document.getElementById("langs").addEventListener("click", e => {
+    const b = e.target.closest(".lang-btn"); if (!b) return;
+    state.lang = b.dataset.lang || null; renderLangs(); render();
+  });
+
+  fetchRepos()
+    .then(repos => { state.repos = repos.filter(r => r.name.toLowerCase() !== `${USER.toLowerCase()}.github.io`); renderStats(); renderLangs(); render(); })
+    .catch(err => {
+      grid.innerHTML = `<div class="status">😵 Couldn't reach GitHub: ${esc(err.message)}<br><br><a class="chip" href="https://github.com/${USER}?tab=repositories">See them on GitHub instead →</a></div>`;
+    });
+})();
+</script>
+</body>
+</html>
