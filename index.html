@@ -94,6 +94,7 @@
   .loves { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
   .love {
     padding: 20px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--card-border);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     transition: transform .25s cubic-bezier(.3,1.6,.5,1);
   }
   .love:hover { transform: translateY(-6px) rotate(1deg); }
@@ -101,9 +102,20 @@
   .love h3 { margin: 0 0 6px; font-size: 18px; }
   .love p { margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.5; }
 
+  /* ---------- Phyllotaxis flower (background, right of content) ---------- */
+  .flower-spot { position: relative; height: 0; z-index: -1; pointer-events: none; }
+  #flower {
+    position: absolute; width: 640px; height: 640px;
+    left: calc(100% - 200px); top: -380px;
+    opacity: .6; filter: saturate(1.1);
+  }
+  @media (max-width: 1000px) {
+    #flower { left: 50%; transform: translateX(-50%); width: min(560px, 110vw); height: min(560px, 110vw); opacity: .22; }
+  }
+
   /* ---------- Stats ---------- */
   .stats { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 22px; }
-  .stat { flex: 1 1 140px; padding: 16px 18px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--card-border); }
+  .stat { flex: 1 1 140px; padding: 16px 18px; border-radius: var(--radius); background: var(--card); border: 1px solid var(--card-border); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
   .stat b { display: block; font-size: 30px; font-variant-numeric: tabular-nums; }
   .stat span { color: var(--muted); font-size: 13px; }
 
@@ -169,6 +181,9 @@
   }
 
   .confetti { position: fixed; top: 0; left: 0; z-index: 10; pointer-events: none; font-size: 22px; will-change: transform; }
+  .confetti.still { opacity: 0; font-size: 26px; transition: opacity .8s ease !important; }
+  .confetti.still.on { opacity: 1; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
   @media (max-width: 640px) {
     .hero { grid-template-columns: 1fr; text-align: center; padding-top: 70px; gap: 22px; }
@@ -202,7 +217,7 @@
           GitHub
         </a>
         <a class="chip" href="https://frazerk.net" target="_blank" rel="noopener">🌐 frazerk.net</a>
-        <span class="chip">📍 San Francisco</span>
+        <span class="chip">📍 Reno</span>
         <span class="chip">✨ United Visions</span>
       </div>
     </div>
@@ -216,6 +231,8 @@
     <div class="love"><span class="emoji">🛠️</span><h3>Handy tools</h3><p>Mac clipboard managers, CSS helpers, sorting algorithms and tax estimators.</p></div>
   </div>
 
+  <div class="flower-spot" aria-hidden="true"><canvas id="flower"></canvas></div>
+
   <h2 class="section-title" id="projects"><small>// fetched live from GitHub</small>All my repos</h2>
 
   <div class="stats" id="stats"></div>
@@ -227,7 +244,7 @@
       <button data-sort="popular" aria-pressed="false">⭐ Popular</button>
     </div>
     <input class="search" id="search" type="search" placeholder="Search repos…" aria-label="Search repositories">
-    <label class="toggle"><input type="checkbox" id="showForks"> Show forks</label>
+    <label class="toggle"><input type="checkbox" id="showForks"> Show all forks</label>
   </div>
   <div class="langs" id="langs"></div>
 
@@ -237,7 +254,7 @@
 </main>
 
 <footer>
-  Made with ☕ and curiosity · <button id="partyBtn">Throw a party 🎉</button>
+  Made with 💕 and curiosity · <button id="partyBtn" aria-pressed="false">Throw a party 🎉</button><span class="sr-only" id="partyMsg" aria-live="polite"></span>
 </footer>
 
 <script>
@@ -246,6 +263,10 @@
   const PAGES_BASE = "https://frazer.github.io/";
   const CACHE_KEY = "repos-cache-v1";
   const CACHE_MS = 30 * 60 * 1000;
+  // Forks I've put real work into: always shown, even with "Show forks" off.
+  const FEATURED_FORKS = new Set(["clipM", "frazerk.net", "reveal.js", "d3-context-menu", "pc-daily-motivation-scripts"].map(n => n.toLowerCase()));
+  const featured = r => r.fork && FEATURED_FORKS.has(r.name.toLowerCase());
+  const shown = r => state.forks || !r.fork || featured(r);
 
   const LANG_COLORS = {
     JavaScript: "#f1e05a", TypeScript: "#3178c6", HTML: "#e34c26", CSS: "#663399", Swift: "#F05138",
@@ -304,14 +325,54 @@
   }
   draw();
 
+  /* ---------- Phyllotaxis flower (ported from PhyllotaxisFlowerOnCanvasWithD3) ---------- */
+  (() => {
+    const fc = document.getElementById("flower"), fx = fc.getContext("2d");
+    const DOTS = 2000, SPACING = 7, DOT_R = 2.5, SPIN = 4, COLOR_SPEED = 5, WAVELENGTH = 108;
+    const GOLDEN = Math.PI * (3 - Math.sqrt(5));
+    let size = 0, rotate = 0, colorStart = 0, running = true;
+    function fit() {
+      const css = fc.getBoundingClientRect().width || 640;
+      size = Math.round(css * devicePixelRatio);
+      fc.width = fc.height = size;
+    }
+    function frame() {
+      const scale = size / Math.sqrt(DOTS * 200);
+      const c = size / 2, theta = GOLDEN + rotate;
+      fx.clearRect(0, 0, size, size);
+      let hue = colorStart;
+      for (let i = 0; i < DOTS; i++) {
+        const r = SPACING * Math.sqrt(i) * scale, a = theta * i;
+        hue += WAVELENGTH / 200;
+        fx.fillStyle = `hsl(${((hue % 360) + 360) % 360}, 100%, 50%)`;
+        fx.beginPath();
+        fx.arc(c + r * Math.cos(a), c + r * Math.sin(a), DOT_R * scale, 0, Math.PI * 2);
+        fx.fill();
+      }
+      colorStart -= COLOR_SPEED;
+      rotate += SPIN * SPIN / 1e6;
+    }
+    function loop() { if (!running) return; frame(); requestAnimationFrame(loop); }
+    fit(); addEventListener("resize", () => { fit(); if (reduce) frame(); });
+    if (reduce) { frame(); return; }
+    // Only animate while the flower is on screen.
+    new IntersectionObserver(([e]) => {
+      const was = running; running = e.isIntersecting;
+      if (running && !was) loop();
+    }).observe(fc);
+    loop();
+  })();
+
   /* ---------- Confetti ---------- */
   const bits = ["🎉", "✨", "🌀", "💖", "⭐", "🚀", "🌈", "🎮"];
+  const motionMQ = matchMedia("(prefers-reduced-motion: reduce)");
   function confetti(x, y, n = 30) {
-    if (reduce) return;
+    if (motionMQ.matches) return;
     for (let i = 0; i < n; i++) {
       const el = document.createElement("span");
       el.className = "confetti"; el.textContent = bits[i % bits.length];
       document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000); // safety net if frames are paused (e.g. background tab)
       let px = x, py = y, vx = (Math.random() - .5) * 14, vy = -Math.random() * 14 - 4, rot = 0, vr = (Math.random() - .5) * 20, life = 0;
       (function step() {
         vy += .45; px += vx; py += vy; rot += vr; life++;
@@ -322,9 +383,61 @@
     }
   }
   document.getElementById("avatarWrap").addEventListener("click", e => confetti(e.clientX, e.clientY));
-  document.getElementById("partyBtn").addEventListener("click", () => {
-    for (let k = 0; k < 5; k++) setTimeout(() => confetti(Math.random() * innerWidth, innerHeight * .6, 24), k * 180);
-  });
+  /* Party mode: ~20s of celebration. With reduced motion on, emoji appear and
+     fade in place (no movement) instead of flying around. */
+  const partyBtn = document.getElementById("partyBtn");
+  const partyMsg = document.getElementById("partyMsg");
+  const PARTY_MS = 20000;
+  let partyTimers = [], partyEnd = 0;
+
+  function rain(n) {
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement("span");
+      el.className = "confetti"; el.textContent = bits[Math.floor(Math.random() * bits.length)];
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 12000);
+      let px = Math.random() * innerWidth, py = -40, vy = 1.5 + Math.random() * 2.5, sway = Math.random() * 6, rot = 0, vr = (Math.random() - .5) * 6, t = 0;
+      (function step() {
+        t++; py += vy; rot += vr;
+        el.style.transform = `translate(${px + Math.sin(t / 20) * sway * 4}px, ${py}px) rotate(${rot}deg)`;
+        if (py < innerHeight + 40 && !motionMQ.matches) requestAnimationFrame(step); else el.remove();
+      })();
+    }
+  }
+  function sparkleInPlace(n) {
+    for (let i = 0; i < n; i++) {
+      const el = document.createElement("span");
+      el.className = "confetti still"; el.textContent = bits[Math.floor(Math.random() * bits.length)];
+      el.style.left = Math.random() * (innerWidth - 30) + "px";
+      el.style.top = Math.random() * (innerHeight - 30) + "px";
+      document.body.appendChild(el);
+      requestAnimationFrame(() => el.classList.add("on"));
+      setTimeout(() => el.classList.remove("on"), 1600);
+      setTimeout(() => el.remove(), 2400);
+    }
+  }
+  function stopParty() {
+    partyTimers.forEach(clearInterval); partyTimers = [];
+    partyBtn.textContent = "Throw a party 🎉"; partyBtn.setAttribute("aria-pressed", "false");
+    partyMsg.textContent = "";
+  }
+  function startParty() {
+    partyEnd = Date.now() + PARTY_MS;
+    partyBtn.textContent = "Stop the party 🛑"; partyBtn.setAttribute("aria-pressed", "true");
+    partyMsg.textContent = "Party started!";
+    const tick = (fn, ms) => partyTimers.push(setInterval(() => { if (Date.now() > partyEnd) stopParty(); else fn(); }, ms));
+    if (motionMQ.matches) {
+      sparkleInPlace(6);
+      tick(() => sparkleInPlace(3), 900);
+    } else {
+      for (let k = 0; k < 5; k++) confetti(Math.random() * innerWidth, innerHeight * .6, 24);
+      tick(() => confetti(Math.random() * innerWidth, innerHeight * (.3 + Math.random() * .5), 18), 450);
+      tick(() => rain(4), 300);
+    }
+  }
+  partyBtn.addEventListener("click", () => partyTimers.length ? stopParty() : startParty());
+  // If the reduced-motion setting changes mid-party, restart in the right mode.
+  motionMQ.addEventListener("change", () => { if (partyTimers.length) { stopParty(); startParty(); } });
 
   /* ---------- Repos ---------- */
   const grid = document.getElementById("grid");
@@ -381,7 +494,7 @@
   function visible() {
     const q = state.q.toLowerCase();
     return state.repos
-      .filter(r => state.forks || !r.fork)
+      .filter(shown)
       .filter(r => !state.lang || r.language === state.lang)
       .filter(r => !q || [r.name, r.description, r.language, ...(r.topics || [])].join(" ").toLowerCase().includes(q))
       .sort(SORTS[state.sort]);
@@ -401,7 +514,7 @@
   }
 
   function renderLangs() {
-    const pool = state.repos.filter(r => state.forks || !r.fork);
+    const pool = state.repos.filter(shown);
     const counts = {};
     pool.forEach(r => r.language && (counts[r.language] = (counts[r.language] || 0) + 1));
     if (state.lang && !counts[state.lang]) state.lang = null;
@@ -414,10 +527,10 @@
   function render() {
     const list = visible();
     if (!list.length) { grid.innerHTML = `<div class="status">🦗 No repos match that. Try something else?</div>`; return; }
-    const topHot = new Set([...state.repos].filter(r => !r.fork).sort(SORTS.hot).slice(0, 3).map(r => r.name));
+    const topHot = new Set([...state.repos].filter(r => !r.fork || featured(r)).sort(SORTS.hot).slice(0, 3).map(r => r.name));
     grid.innerHTML = list.map((r, i) => {
       const live = liveUrl(r);
-      const badge = r.fork ? `<span class="badge">fork</span>` : r.archived ? `<span class="badge">archived</span>` : topHot.has(r.name) ? `<span class="badge hot">🔥 hot</span>` : "";
+      const badge = topHot.has(r.name) ? `<span class="badge hot">🔥 hot</span>` : featured(r) ? `<span class="badge">🍴 remix</span>` : r.fork ? `<span class="badge">fork</span>` : r.archived ? `<span class="badge">archived</span>` : "";
       return `<article class="repo" style="animation-delay:${Math.min(i, 20) * 30}ms">
         <div class="repo-head"><h3><a href="${esc(r.html_url)}" target="_blank" rel="noopener">${esc(r.name)}</a></h3>${badge}</div>
         ${r.description ? `<p>${esc(r.description)}</p>` : `<p class="empty">A mystery project. Click to find out 🕵️</p>`}
